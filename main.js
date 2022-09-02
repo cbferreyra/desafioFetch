@@ -9,60 +9,65 @@ tituloMenu.innerHTML = "Elegí tu gustito del día";
 divContenedor.appendChild(tituloMenu);
 
 let carrito = [];
-fetch("api/catalogo.json")
-  .then((respuesta) => respuesta.json())
-  .then((productos) => {
-    for (let cardItem of productos) {
-      let cards = document.createElement("div");
-      cards.className = "cardsStyle";
-      cards.innerHTML = `<img class= cardImage src= imagenes/${cardItem.imagen}
+
+const renderProductos = async function () {
+  fetch("api/catalogo.json")
+    .then((respuesta) => respuesta.json())
+    .then((productos) => {
+      for (let cardItem of productos) {
+        let cards = document.createElement("div");
+        cards.className = "cardsStyle";
+        cards.innerHTML = `<img class= cardImage src= imagenes/${cardItem.imagen}
   />
     <h3 class = "card__title"> ${cardItem.name}</h3> 
     <p class = "card__precio" >  $${cardItem.precio}</p>
     <button class= "comprar__btn" id= "${cardItem.id}">Comprar</button>
     <div class = "confirmacion_carrito"></div>
     `;
-      seccion[0].appendChild(cards);
-    }
-  });
+        seccion[0].appendChild(cards);
+      }
+      //captura del botón  y el div de confirmacion de agragado al carrito en el DOM
+      let botonesComprar = document.querySelectorAll(".comprar__btn");
+      let confirmacionCarrito = document.querySelector(".confirmacion_carrito");
+      //recorro los botones de los productos y les asigno el evento para que al hacer click, agregue los productos al carrito
+      botonesComprar.forEach((botonComprar) => {
+        botonComprar.addEventListener("click", (e) => {
+          let idBoton = parseInt(e.target.id); //acá el id pasa de string a número
+          let productoEncontrado = buscarProducto(idBoton); //en base al número (orieginalmente del id del botón) busca el producto en el array
+          agregarProducto(productoEncontrado); //pushea el objeto (producto) al array (carrito)
+          guardaCarrito(carrito);
 
-//captura del botón  y el div de confirmacion de agragado al carrito en el DOM
-let botonesComprar = document.querySelectorAll(".comprar__btn");
-let confirmacionCarrito = document.querySelector(".confirmacion_carrito");
-//recorro los botones de los productos y les asigno el evento para que al hacer click, agregue los productos al carrito
-botonesComprar.forEach((botonComprar) => {
-  botonComprar.addEventListener("click", (e) => {
-    let idBoton = parseInt(e.target.id); //acá el id pasa de string a número
-    let productoEncontrado = buscarProducto(idBoton); //en base al número (orieginalmente del id del botón) busca el producto en el array
-    agregarProducto(productoEncontrado); //pushea el objeto (producto) al array (carrito)
-    guardaCarrito(carrito);
+          /*JUSTIFICACIÓN DE LIBRERÍA: Elegí usar Toastify porque me parece la librería más apropiada para este caso en el que sólo necesito que aparezca un mensaje breve que notifique al usuario que se agregó el producto al carrito */
+          Toastify({
+            text: `La pizza de ${productoEncontrado.name} fue agregada al carrito de compras`,
+            duration: 4000,
+            destination: "https://github.com/apvarun/toastify-js",
+            close: true,
+            gravity: "top",
+            position: "right",
+            style: {
+              color: "#FF5733",
+              background: "linear-gradient(to right,#FBFCFC , #F8F9F9 )",
+            },
+          }).showToast();
+          //confirmacionCarrito.innerHTML = `La pizza de: ${productoEncontrado.name} fue agregada al carrito de compras`;
+          /*  console.log(
+          `La pizza de: ${productoEncontrado.name} fue agregada al carrito de compras`
+        ); */
+        });
+      });
 
-    /*JUSTIFICACIÓN DE LIBRERÍA: Elegí usar Toastify porque me parece la librería más apropiada para este caso en el que sólo necesito que aparezca un mensaje breve que notifique al usuario que se agregó el producto al carrito */
-    Toastify({
-      text: `La pizza de ${productoEncontrado.name} fue agregada al carrito de compras`,
-      duration: 4000,
-      destination: "https://github.com/apvarun/toastify-js",
-      close: true,
-      gravity: "top",
-      position: "right",
-      style: {
-        color: "#FF5733",
-        background: "linear-gradient(to right,#FBFCFC , #F8F9F9 )",
-      },
-    }).showToast();
-    //confirmacionCarrito.innerHTML = `La pizza de: ${productoEncontrado.name} fue agregada al carrito de compras`;
-    /*  console.log(
-      `La pizza de: ${productoEncontrado.name} fue agregada al carrito de compras`
-    ); */
-  });
-});
-function buscarProducto(id) {
-  return productos.find((elemento) => elemento.id == id);
-}
-function agregarProducto(producto) {
-  carrito.push(producto);
-  console.log(carrito);
-}
+      function buscarProducto(id) {
+        return productos.find((elemento) => elemento.id == id);
+      }
+      function agregarProducto(producto) {
+        carrito.push(producto);
+        console.log(carrito);
+      }
+    });
+};
+
+renderProductos();
 
 //HASTA ACÁ EL CARRITO FUNCIONANDO DEVUELVE ARRAY EN CONSOLA
 
